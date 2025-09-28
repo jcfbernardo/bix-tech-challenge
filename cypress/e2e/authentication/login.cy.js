@@ -1,10 +1,11 @@
 import LoginPage from "../../support/page_objects/LoginPage";
 
 describe('CT-009: User Session State Transition', () => {
+    let vars = {};
   before(function() {
     cy.fixture('users.json').then((users) => {
-      this.adminUser = users[0];
-      this.regularUser = users[1];
+      vars.adminUser = users[0];
+      vars.regularUser = users[1];
     });
   });
 
@@ -15,11 +16,11 @@ describe('CT-009: User Session State Transition', () => {
     LoginPage.shouldBeLoggedOut();
 
     cy.log('Executing the login with a valid user')
-    LoginPage.login(this.regularUser.email, this.regularUser.password);
+    LoginPage.login(vars.regularUser.email, vars.regularUser.password);
     
     cy.log('Checking logged state')
     LoginPage.shouldBeLoggedIn();
-    LoginPage.shouldShowUserName(this.regularUser.name);
+    LoginPage.shouldShowUserName(vars.regularUser.name);
 
     cy.log('Executing logout')
     LoginPage.logout();
