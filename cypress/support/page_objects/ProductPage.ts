@@ -89,12 +89,16 @@ export class ProductPage {
   }
 
   shouldShowCartCount(count: number): void {
-    cy.get(this.selectors.cartCount).should('contain', count.toString());
+    cy.get(this.selectors.cartCount).invoke('text').then((text) => {
+      assert.strictEqual(parseInt(text), count);
+    });
   }
 
   shouldShowCartTotal(total: number): void {
     const formattedTotal = total.toFixed(2).replace('.', ',');
-    cy.get(this.selectors.cartTotal).should('contain', formattedTotal);
+    cy.get(this.selectors.cartTotal).invoke('text').then((text) => {
+      assert.strictEqual(text, formattedTotal);
+    });
   }
 
   shouldDisableAddButton(productId: number): void {
