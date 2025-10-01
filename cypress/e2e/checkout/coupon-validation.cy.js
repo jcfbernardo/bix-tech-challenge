@@ -49,4 +49,22 @@ describe("Coupon Validation Scenarios with Mocks", function () {
         CheckoutPage.shouldHideDiscountLine();
         CheckoutPage.shouldShowFinalTotal(product.price);
     });
+
+    /**
+     * @description CT-013: Attempt to apply an expired discount coupon.
+     */
+    it("CT-013: should display an error for an expired discount coupon", function () {
+        const product = this.products.find((p) => p.name === "Keyboard");
+        const expiredCoupon = "EXPIRED";
+
+        cy.mockCouponValidation(expiredCoupon, 0, false);
+
+        CheckoutPage.applyCoupon(expiredCoupon);
+        cy.wait("@validateCoupon");
+
+        CheckoutPage.shouldShowCouponError();
+        CheckoutPage.shouldShowCouponMessage("Coupon is expired");
+        CheckoutPage.shouldHideDiscountLine();
+        CheckoutPage.shouldShowFinalTotal(product.price);
+    });
 });

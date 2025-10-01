@@ -10,22 +10,22 @@ Cypress.Commands.add("login", (email, password) => {
 });
 
 Cypress.Commands.add('addProductToCart', (productName: string, quantity: number = 1) => {
-    cy.log(`Adicionando ${quantity} unidade(s) de '${productName}' ao carrinho.`);
-    ProductPage.visit();
-    ProductPage.addToCart(productName, quantity)
+  cy.log(`Adicionando ${quantity} unidade(s) de '${productName}' ao carrinho.`);
+  ProductPage.visit();
+  ProductPage.addToCart(productName, quantity)
 });
 
 Cypress.Commands.add('setupProductsAndUsers', (productModifications?: any[]) => {
   cy.fixture("products.json").as('products');
   cy.fixture("users.json").as('users');
-  
+
   cy.get('@products').then((products: any) => {
     let finalProducts = products;
-    
+
     if (productModifications) {
       finalProducts = productModifications;
     }
-    
+
     cy.intercept("GET", "/api/products", {
       body: { items: finalProducts },
     }).as("getProducts");
@@ -53,10 +53,10 @@ Cypress.Commands.add('mockCheckoutSuccess', (total?: number, orderId?: string) =
 });
 
 Cypress.Commands.add('mockCouponValidation', (couponCode: string, discount: number, isValid: boolean = true) => {
-  const responseBody = isValid 
+  const responseBody = isValid
     ? { valid: true, coupon: { code: couponCode, discount, type: "percentage" } }
-    : { valid: false, message: "Invalid coupon code" };
-    
+    : { valid: false, message: couponCode === "EXPIRED" ? "Coupon is expired" : "Invalid coupon code" };
+
   cy.intercept("POST", "**/api/validate-coupon", {
     statusCode: 200,
     body: responseBody,
@@ -68,7 +68,7 @@ Cypress.Commands.add('setupCartTest', (productName: string = "Keyboard") => {
   cy.loginAsRegularUser();
   ProductPage.visit();
   cy.wait('@getProducts');
-  
+
   cy.get('@products').then((products: any) => {
     const product = products.find((p: any) => p.name === productName);
     ProductPage.addToCart(product.name, 1);
@@ -80,7 +80,7 @@ Cypress.Commands.add('modifyProductStock', (productName: string, newStock: numbe
     const updatedProducts = products.map((product: any) =>
       product.name === productName ? { ...product, stock: newStock } : product
     );
-    
+
     cy.intercept("GET", "/api/products", {
       statusCode: 200,
       body: { items: updatedProducts },

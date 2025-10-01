@@ -1,4 +1,3 @@
-
 ### **Test Suite: BIX Mini E-commerce**
 
 
@@ -86,8 +85,6 @@
 3.  Click "Apply Coupon".
 **Expected Result:** The system should display a clear error message, such as "Invalid or expired coupon." The purchase total should not be altered.
 
-These tests validate the system's flows, ensuring that state changes (e.g., from "cart with items" to "empty cart" after purchase) occur correctly.
-
 **ID:** CT-007
 
 **Title:** Validate purchase flow and cart clearing
@@ -173,3 +170,17 @@ These tests optimize the verification of interactions between different paramete
 **Steps:**
 1.  Locate the product with zero stock.
 **Expected Result:** The "Add" button and the quantity field for this product must be disabled, preventing any attempt to add it to the cart. If interaction is possible, the system should display an error upon clicking "Add".
+
+**ID:** CT-013
+
+**Title:** Attempt to apply an expired discount coupon
+**Test Type:** Functional
+**Scenario:** Negative
+**Technique Applied:** Equivalence Partitioning (Invalid)
+**Description:** Validates that the system rejects coupon codes that exist in the database but have expired, ensuring proper time-based validation.
+**Precondition:** The user has added a "Keyboard" (R$ 199.90) to the cart. An expired coupon "EXPIRED" exists in the system but is past its expiration date.
+**Steps:**
+1.  Navigate to the "Finalize Purchase" section.
+2.  In the "Coupon code" field, enter "EXPIRED".
+3.  Click "Apply Coupon".
+**Expected Result:** The system should display a clear error message, such as "Coupon is expired". The purchase total should remain unchanged at R$ 199.90.
