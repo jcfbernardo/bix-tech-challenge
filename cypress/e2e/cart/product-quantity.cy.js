@@ -3,22 +3,9 @@ import ProductPage from "../../support/page_objects/ProductPage";
 describe("Cart - Product Quantity Validation with Mocks", function () {
 
   beforeEach(function () {
-    cy.fixture("products.json").as('products');
-    cy.fixture("users.json").as('users');
-
-    cy.get('@products').then(products => {
-      cy.intercept("GET", "/api/products", {
-        body: { items: products },
-      }).as("getProducts");
-    });
-
+    cy.setupProductsAndUsers();
+    cy.loginAsRegularUser();
     ProductPage.visit();
-
-    cy.get('@users').then(users => {
-      const user = users[1];
-      cy.login(user.email, user.password);
-    });
-
     cy.wait('@getProducts');
   });
 

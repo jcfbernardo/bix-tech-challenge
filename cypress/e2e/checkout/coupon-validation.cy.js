@@ -4,27 +4,7 @@ import CheckoutPage from "../../support/page_objects/CheckoutPage";
 describe("Coupon Validation Scenarios with Mocks", function () {
 
     beforeEach(function () {
-        cy.fixture("products.json").as("products");
-        cy.fixture("users.json").as("users");
-
-        cy.get('@products').then(products => {
-            cy.intercept("GET", "/api/products", {
-                body: { items: products },
-            }).as("getProducts");
-        });
-
-        cy.get('@users').then(users => {
-            const user = users[1];
-            cy.login(user.email, user.password);
-        });
-
-        ProductPage.visit();
-        cy.wait("@getProducts");
-
-        cy.get('@products').then(products => {
-            const product = products.find((p) => p.name === "Keyboard");
-            ProductPage.addToCart(product.name, 1);
-        });
+        cy.setupCartTest("Keyboard");
     });
 
     /**
@@ -33,18 +13,14 @@ describe("Coupon Validation Scenarios with Mocks", function () {
     it("CT-005: should apply a valid percentage discount coupon", function () {
         const product = this.products.find((p) => p.name === "Keyboard");
         const couponCode = "WELCOME10";
-        cy.intercept("POST", "/api/validate-coupon", {
-            statusCode: 200,
-            body: { "valid": true, "coupon": { "code": couponCode, "discount": 10, "type": "percentage" } },
-        }).as("validateCoupon");
+        
+        cy.mockCouponValidation(couponCode, 10, true);
 
         CheckoutPage.applyCoupon(couponCode);
 
         cy.wait("@validateCoupon").then((interception) => {
             const discountPercentage = interception.response.body.coupon.discount;
-
             const discountAmount = (product.price * discountPercentage) / 100;
-
             const finalTotal = product.price - discountAmount;
 
             CheckoutPage.shouldShowCouponSuccess();
@@ -63,10 +39,7 @@ describe("Coupon Validation Scenarios with Mocks", function () {
         const product = this.products.find((p) => p.name === "Keyboard");
         const fakeCoupon = "DESC10";
 
-        cy.intercept("POST", "**/api/validate-coupon", {
-            statusCode: 200,
-            body: { "valid": false, "message": "Invalid coupon code" },
-        }).as("validateCoupon");
+        cy.mockCouponValidation(fakeCoupon, 0, false);
 
         CheckoutPage.applyCoupon(fakeCoupon);
         cy.wait("@validateCoupon");

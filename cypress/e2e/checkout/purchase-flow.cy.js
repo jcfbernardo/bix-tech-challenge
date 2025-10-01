@@ -10,13 +10,10 @@ describe("Purchase Flow Scenarios with Mocks", function () {
 
   describe("Authenticated User Flow", function () {
     beforeEach(function () {
-      cy.intercept("GET", "/api/products", {
-        body: { items: this.products },
-      }).as("getProducts");
-
-      const user = this.users[1];
-      cy.login(user.email, user.password);
+      cy.setupProductsAndUsers();
+      cy.loginAsRegularUser();
       ProductPage.visit();
+      cy.wait('@getProducts');
     });
 
     /**
@@ -27,16 +24,7 @@ describe("Purchase Flow Scenarios with Mocks", function () {
       const quantityToAdd = product.stock;
       const expectedTotal = product.price * quantityToAdd;
 
-      cy.intercept("POST", "/api/checkout", {
-        statusCode: 200,
-        body: {
-          orderId: `mock-ord-${Date.now()}`,
-          discount: 0,
-          total: expectedTotal,
-          subtotal: expectedTotal,
-          appliedCoupon: null,
-        },
-      }).as("checkoutRequest");
+      cy.mockCheckoutSuccess(expectedTotal);
 
       ProductPage.addToCart(product.name, quantityToAdd);
       ProductPage.shouldShowCartCount(quantityToAdd);
@@ -66,24 +54,13 @@ describe("Purchase Flow Scenarios with Mocks", function () {
      */
     it("CT-007: should finalize the purchase and clear the cart", function () {
       const product = this.products.find((p) => p.name === "Mouse");
-      const quantityToAdd = product.stock;
-      const expectedTotal = product.price * quantityToAdd;
+      const expectedTotal = product.price * 1;
 
-      cy.intercept("POST", "/api/checkout", {
-        statusCode: 200,
-        body: {
-          orderId: `mock-ord-${Date.now()}`,
-          discount: 0,
-          total: expectedTotal,
-          subtotal: expectedTotal,
-          appliedCoupon: null,
-        },
-      }).as("checkoutRequest");
+      cy.mockCheckoutSuccess(expectedTotal);
 
       ProductPage.addToCart(product.name, 1);
       ProductPage.shouldShowCartCount(1);
       CheckoutPage.finalizePurchase();
-
 
       CheckoutPage.shouldShowEmptyCart();
     });
@@ -91,16 +68,13 @@ describe("Purchase Flow Scenarios with Mocks", function () {
 
   describe("Unauthenticated User Flow", function () {
     beforeEach(function () {
-      cy.intercept("GET", "/api/products", {
-        body: { items: this.products },
-      }).as("getProducts");
-
-      cy.intercept("POST", "/api/validate-coupon", {
-        statusCode: 200,
-        body: { "valid": true, "coupon": { "code": "FIXED50", "discount": 50, "type": "fixed" } },
-      }).as("validateCoupon");
+      cy.setupProductsAndUsers();
+      cy.mockCouponValidation("FIXED50", 50, true);
     });
 
+    /**
+     * @description CT-011: Unauthenticated user attempts to finalize purchase of in-stock product with a fixed coupon.
+     */
     it("CT-011: should redirect to login when attempting to finalize a purchase", function () {
       const product = this.products.find((p) => p.name === "Mouse");
       const fixedCoupon = "FIXED50";

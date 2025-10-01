@@ -8,9 +8,7 @@ describe('User Session State Transition with Mocks', function () {
   });
 
   beforeEach(function () {
-    cy.intercept('GET', '/api/products', {
-      body: { items: this.products }
-    }).as('getProducts');
+    cy.setupProductsAndUsers();
 
     cy.intercept('POST', '/api/login', {
       statusCode: 200,
