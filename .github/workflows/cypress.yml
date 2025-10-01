@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     
     steps:
       - name: Checkout code
@@ -22,21 +22,22 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
+        run: npm ci
+
+      - name: Start application with Docker
+        run: docker compose up --build -d
+
+      - name: Wait for application to be ready
         run: |
-          npm ci
-          cd backend && npm install
+          echo "Waiting for application to start..."
+          npx wait-on http://localhost:3001 --timeout 60000
 
       - name: Run Cypress tests
-        uses: cypress-io/github-action@v6
-        with:
-          start: npm run start:dev
-          wait-on: 'http://localhost:3001'
-          wait-on-timeout: 30
-          browser: chrome
-          headless: true
-          spec: cypress/e2e/**/*.cy.js
-        env:
-          NODE_ENV: test
+        run: npx cypress run --browser chrome --headless
+
+      - name: Stop Docker containers
+        if: always()
+        run: docker compose down
 
       - name: Upload screenshots on failure
         uses: actions/upload-artifact@v4
