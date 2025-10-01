@@ -43,7 +43,7 @@ jobs:
           path: cypress/screenshots
           retention-days: 5
 
-      - name: Upload videos on failure
+      - name: Upload videos always on
         uses: actions/upload-artifact@v4
         if: always()
         with:
